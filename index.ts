@@ -71,4 +71,4 @@ async function setupYoutubeRAG(videoUrl: string) {
   }
 }
 
-setupYoutubeRAG('https://www.youtube.com/watch?v=YOUR_VIDEO_ID');
+setupYoutubeRAG(`https://www.youtube.com/watch?v=F2OpUJsf68g`);
