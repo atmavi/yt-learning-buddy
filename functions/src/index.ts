@@ -1,5 +1,6 @@
 import weaviate, { WeaviateClient, ApiKey, vectors, configure } from 'weaviate-client';
 import { YoutubeTranscript } from 'youtube-transcript';
+import { defineSecret } from 'firebase-functions/params';
 
 // 1. Setup Weaviate Client
 const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
