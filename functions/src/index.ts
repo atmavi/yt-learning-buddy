@@ -2,10 +2,14 @@ import weaviate, { WeaviateClient, ApiKey, vectors, configure } from 'weaviate-c
 import { YoutubeTranscript } from 'youtube-transcript';
 import { defineSecret } from 'firebase-functions/params';
 
+const WEAVIATE_URL = defineSecret("WEAVIATE_URL");
+const WEAVIATE_API_KEY = defineSecret();
+const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
+
 // 1. Setup Weaviate Client
 const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
   'https://your-sandbox-url.weaviate.network', {
-    authCredentials: new ApiKey('YOUR-WEAVIATE-API-KEY'),
+    authCredentials: new ApiKey(WEAVIATE_API_KEY),
     headers: {
       'X-OpenAI-Api-Key': 'YOUR-OPENAI-KEY', // To automatically turn text into vectors
     }
