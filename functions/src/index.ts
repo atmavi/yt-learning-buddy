@@ -1,23 +1,27 @@
+import * as dotenv from 'dotenv';
 import weaviate, { WeaviateClient, ApiKey, vectors, configure } from 'weaviate-client';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { defineSecret } from 'firebase-functions/params';
 
-const WEAVIATE_URL = defineSecret("WEAVIATE_URL");
-const WEAVIATE_API_KEY = defineSecret();
-const OPENAI_API_KEY = defineSecret("OPENAI_API_KEY");
+// Load .env file for local development
+dotenv.config();
 
-// 1. Setup Weaviate Client
-const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
-  'https://your-sandbox-url.weaviate.network', {
-    authCredentials: new ApiKey(WEAVIATE_API_KEY),
-    headers: {
-      'X-OpenAI-Api-Key': 'YOUR-OPENAI-KEY', // To automatically turn text into vectors
-    }
-  }
-);
+const WEAVIATE_URL = defineSecret(process.env.WEAVIATE_URL|| "");
+const WEAVIATE_API_KEY = defineSecret(process.env.WEAVIATE_API_KEY || "");
+const OPENAI_API_KEY = defineSecret(process.env.OPENAI_API_KEY || "");
 
 async function setupYoutubeRAG(videoUrl: string) {
   try {
+    // 1. Setup Weaviate Client
+    const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
+      WEAVIATE_URL.value(), {
+        authCredentials: new ApiKey(WEAVIATE_API_KEY.value()),
+        headers: {
+          'X-OpenAI-Api-Key': OPENAI_API_KEY.value(), // To automatically turn text into vectors
+        }
+      }
+    );
+
     // 2. Create the Collection (Schema)
     const collectionName = 'YoutubeLesson';
     
@@ -71,9 +75,8 @@ async function setupYoutubeRAG(videoUrl: string) {
 
   } catch (error) {
     console.error("Error:", error);
-  } finally {
-    client.close();
   }
+}
 }
 
 setupYoutubeRAG(`https://www.youtube.com/watch?v=F2OpUJsf68g`);
