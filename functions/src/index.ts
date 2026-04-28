@@ -77,6 +77,5 @@ async function setupYoutubeRAG(videoUrl: string) {
     console.error("Error:", error);
   }
 }
-}
 
 setupYoutubeRAG(`https://www.youtube.com/watch?v=F2OpUJsf68g`);
