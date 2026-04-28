@@ -1,23 +1,28 @@
 import * as dotenv from 'dotenv';
 import weaviate, { WeaviateClient, ApiKey, vectors, configure } from 'weaviate-client';
 import { YoutubeTranscript } from 'youtube-transcript';
-import { defineSecret } from 'firebase-functions/params';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 
 // Load .env file for local development
 dotenv.config();
 
-const WEAVIATE_URL = defineSecret(process.env.WEAVIATE_URL|| "");
-const WEAVIATE_API_KEY = defineSecret(process.env.WEAVIATE_API_KEY || "");
-const OPENAI_API_KEY = defineSecret(process.env.OPENAI_API_KEY || "");
-
 async function setupYoutubeRAG(videoUrl: string) {
   try {
+    // Get environment variables (from dotenv locally, or from Firebase runtime in production)
+    const weaviateUrl = process.env.WEAVIATE_URL;
+    const weaviateApiKey = process.env.WEAVIATE_API_KEY;
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+
+    if (!weaviateUrl || !weaviateApiKey || !openaiApiKey) {
+      throw new Error("Missing required environment variables: WEAVIATE_URL, WEAVIATE_API_KEY, OPENAI_API_KEY");
+    }
+
     // 1. Setup Weaviate Client
     const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
-      WEAVIATE_URL.value(), {
-        authCredentials: new ApiKey(WEAVIATE_API_KEY.value()),
+      weaviateUrl, {
+        authCredentials: new ApiKey(weaviateApiKey),
         headers: {
-          'X-OpenAI-Api-Key': OPENAI_API_KEY.value(), // To automatically turn text into vectors
+          'X-OpenAI-Api-Key': openaiApiKey, // To automatically turn text into vectors
         }
       }
     );
@@ -78,4 +83,14 @@ async function setupYoutubeRAG(videoUrl: string) {
   }
 }
 
-setupYoutubeRAG(`https://www.youtube.com/watch?v=F2OpUJsf68g`);
+// Export as a Cloud Function (HTTP callable)
+export const processYoutubeVideo = onCall(async (request) => {
+  const videoUrl = request.data.videoUrl;
+  
+  if (!videoUrl) {
+    throw new HttpsError('invalid-argument', 'videoUrl is required');
+  }
+  
+  await setupYoutubeRAG(videoUrl);
+  return { message: 'Video processed successfully' };
+});
