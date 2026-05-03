@@ -18,14 +18,22 @@ async function setupYoutubeRAG(videoUrl: string) {
     }
 
     // 1. Setup Weaviate Client
-    const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
-      weaviateUrl, {
-        authCredentials: new ApiKey(weaviateApiKey),
-        headers: {
-          'X-OpenAI-Api-Key': openaiApiKey, // To automatically turn text into vectors
-        }
+    // const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
+    //   weaviateUrl, {
+    //     authCredentials: new ApiKey(weaviateApiKey),
+    //     headers: {
+    //       'X-OpenAI-Api-Key': openaiApiKey, // To automatically turn text into vectors
+    //     }
+    //   }
+    // );
+
+    const client: WeaviateClient = await weaviate.connectToLocal({
+      host: 'localhost',
+      port: 8080,
+      headers: {
+        'X-OpenAI-Api-Key': openaiApiKey, 
       }
-    );
+    });
 
     // 2. Create the Collection (Schema)
     const collectionName = 'YoutubeLesson';
